@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - ProjectArt{% endblock %}
+
+{% block content %}
+<style>
+    .post-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .post-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .post-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+    
+    .post-meta {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        color: var(--text-muted);
+    }
+    
+    .post-author {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+    
+    .post-author:hover {
+        color: #667eea;
+    }
+
+    .author-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /* Описание (над картинкой) */
+    .post-description {
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        border-left: 4px solid #667eea;
+    }
+
+    /* Картинка (после описания) */
+    .post-featured-image {
+        margin-bottom: 30px;
+        border-radius: 20px;
+        overflow: hidden;
+        text-align: center;
+        background: var(--bg-secondary);
+    }
+
+    .post-featured-image img {
+        max-width: 100%;
+        max-height: 500px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 16px;
+    }
+
+    .post-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+        margin-bottom: 40px;
+    }
+
+    .post-content h4 {
+        margin: 20px 0 10px 0;
+        color: var(--text-primary);
+    }
+
+    .post-content ol, .post-content ul {
+        margin: 15px 0;
+        padding-left: 25px;
+    }
+
+    .post-content li {
+        margin: 8px 0;
+    }
+
+    .post-tags {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .tag {
+        background: var(--bg-secondary);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .tag:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 40px;
+        padding: 15px 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .like-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 8px 20px;
+        border-radius: 30px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-primary);
+    }
+
+    .like-btn.liked {
+        background: #ff4757;
+        color: white;
+    }
+
+    .like-btn:not(.liked):hover {
+        background: var(--bg-secondary);
+    }
+
+    .comments-section {
+        margin-top: 40px;
+    }
+
+    .comments-title {
+        font-size: 1.5rem;
+        margin-bottom: 25px;
+        color: var(--text-primary);
+    }
+
+    .comment-form {
+        margin-bottom: 30px;
+    }
+
+    .comment {
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .comment-avatar {
+        flex-shrink: 0;
+    }
+
+    .comment-avatar img, .comment-avatar div {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .comment-avatar div {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .comment-body {
+        flex: 1;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .comment-author:hover {
+        color: #667eea;
+    }
+
+    .comment-date {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .comment-text {
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .empty-comments {
+        text-align: center;
+        padding: 40px;
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+        .post-title {
+            font-size: 1.8rem;
+        }
+
+        .post-meta {
+            gap: 12px;
+        }
+
+        .post-content {
+            font-size: 1rem;
+        }
+
+        .post-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .comment {
+            flex-direction: column;
+        }
+
+        .post-featured-image img {
+            max-height: 300px;
+        }
+    }
+</style>
+
+<div class="post-container">
+    <div class="post-header">
+        <h1 class="post-title">{{ post.title }}</h1>
+        <div class="post-meta">
+            <a href="{% url 'users:profile_detail' username=post.author.username %}" class="post-author">
+                {% if post.author.avatar and post.author.avatar.url %}
+                    <img src="{{ post.author.avatar.url }}" class="author-avatar">
+                {% else %}
+                    <div class="author-avatar" style="background: #667eea; display: flex; align-items: center; justify-content: center; color: white;">
+                        {{ post.author.username|make_list|first|upper }}
+                    </div>
+                {% endif %}
+                {{ post.author.username }}
+            </a>
+            <span>📅 {{ post.published_at|date:"d.m.Y" }}</span>
+            {% if post.category %}
+                <span>📁 {{ post.category.name }}</span>
+            {% endif %}
+            {% if post.content_type %}
+                <span>🎯 {{ post.content_type.name }}</span>
+            {% endif %}
+            <span>👁️ {{ post.views }} просмотров</span>
+        </div>
+    </div>
+
+    <!-- Описание поста (над картинкой) -->
+    {% if post.description %}
+    <div class="post-description">
+        <strong>📝 Описание:</strong><br>
+        {{ post.description }}
+    </div>
+    {% endif %}
+
+    <!-- Картинка (после описания, только если есть) -->
+    {% if post.featured_image and post.featured_image.url %}
+    <div class="post-featured-image">
+        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+    </div>
+    {% endif %}
+
+    <div class="post-content">
+        {% if post.content_type.slug == 'finished' or post.content_type.name == 'Готовое произведение' %}
+            {% if post.content.text %}
+                <p style="white-space: pre-wrap;">{{ post.content.text }}</p>
+            {% endif %}
+            {% if post.content.materials %}
+                <p><strong>🎨 Материалы:</strong> {{ post.content.materials }}</p>
+            {% endif %}
+            {% if post.content.technique %}
+                <p><strong>🖌️ Техника:</strong> {{ post.content.technique }}</p>
+            {% endif %}
+            {% if post.content.size %}
+                <p><strong>📏 Размер:</strong> {{ post.content.size }}</p>
+            {% endif %}
+            {% if not post.content.text and not post.content.materials and not post.content.technique and not post.content.size %}
+                <p>Описание работы не добавлено</p>
+            {% endif %}
+
+        {% elif post.content_type.slug == 'process' %}
+            <h4>📝 Этапы создания:</h4>
+            <ol>
+                {% for stage in post.content.stages %}
+                    <li>{{ stage }}</li>
+                {% empty %}
+                    <li>Этапы не указаны</li>
+                {% endfor %}
+            </ol>
+
+        {% elif post.content_type.slug == 'tutorial' %}
+            <p><strong>⏱️ Длительность:</strong> {{ post.content.duration|default:"Не указано" }}</p>
+            <p><strong>📊 Сложность:</strong>
+                {% if post.content.difficulty == 'beginner' %}Начинающий
+                {% elif post.content.difficulty == 'intermediate' %}Средний
+                {% elif post.content.difficulty == 'advanced' %}Продвинутый
+                {% else %}{{ post.content.difficulty|default:"Не указано" }}{% endif %}
+            </p>
+            <h4>📖 Пошаговая инструкция:</h4>
+            <ol>
+                {% for stage in post.content.stages %}
+                    <li>{{ stage }}</li>
+                {% empty %}
+                    <li>Этапы не указаны</li>
+                {% endfor %}
+            </ol>
+
+        {% else %}
+            <p>{{ post.content|default:"Нет содержимого" }}</p>
+        {% endif %}
+    </div>
+
+    {% if post.tags.all %}
+    <div class="post-tags">
+        {% for tag in post.tags.all %}
+            <a href="{% url 'posts:tag_detail' tag_name=tag.name %}" class="tag">#{{ tag.name }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="post-actions">
+        <button class="like-btn {% if user_liked %}liked{% endif %}" data-post-slug="{{ post.slug }}">
+            {% if user_liked %}❤️{% else %}🤍{% endif %} <span class="like-count">{{ post.likes }}</span>
+        </button>
+        {% if user == post.author %}
+            <a href="{% url 'posts:post_edit' slug=post.slug %}" class="btn btn-outline-secondary">✏️ Редактировать</a>
+            <button class="btn btn-outline-danger" onclick="showDeleteModal()">🗑️ Удалить</button>
+        {% endif %}
+    </div>
+
+    <div class="comments-section">
+        <h3 class="comments-title">💬 Комментарии ({{ post.comments.count }})</h3>
+
+        {% if user.is_authenticated %}
+        <div class="comment-form">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.text }}
+                <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <a href="{% url 'users:login' %}?next={{ request.path }}">Войдите</a> или
+            <a href="{% url 'users:register' %}?next={{ request.path }}">зарегистрируйтесь</a>, чтобы оставить комментарий.
+        </div>
+        {% endif %}
+
+        {% if comments %}
+            {% for comment in comments %}
+            <div class="comment">
+                <div class="comment-avatar">
+                    {% if comment.author.avatar and comment.author.avatar.url %}
+                        <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.username }}">
+                    {% else %}
+                        <div>{{ comment.author.username|make_list|first|upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="comment-body">
+                    <div class="comment-header">
+                        <a href="{% url 'users:profile_detail' username=comment.author.username %}" class="comment-author">
+                            {{ comment.author.username }}
+                        </a>
+                        <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <div class="comment-text">{{ comment.text }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-comments">
+                <p>💭 Пока нет комментариев. Будьте первым!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Удаление поста</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить пост "{{ post.title }}"?</p>
+                <p class="text-danger">Это действие нельзя отменить.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form action="{% url 'posts:post_delete' slug=post.slug %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal() {
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    }
+
+    const likeBtn = document.querySelector('.like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function() {
+            const postSlug = this.dataset.postSlug;
+            const likeCountSpan = this.querySelector('.like-count');
+
+            fetch(`/post/${postSlug}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.liked) {
+                        this.classList.add('liked');
+                        this.innerHTML = `❤️ <span class="like-count">${data.likes_count}</span>`;
+                    } else {
+                        this.classList.remove('liked');
+                        this.innerHTML = `🤍 <span class="like-count">${data.likes_count}</span>`;
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+</script>
+{% endblock %}

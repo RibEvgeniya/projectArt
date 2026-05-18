@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if post %}Редактирование{% else %}Создание{% endif %} поста - ProjectArt{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: block;
+        color: var(--text-primary);
+    }
+
+    .help-text {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 5px;
+    }
+
+    .dynamic-fields {
+        background: var(--bg-secondary);
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+
+    .dynamic-fields-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--text-primary);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        font-weight: 500;
+        margin-top: 20px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .current-image {
+        margin-top: 10px;
+        padding: 10px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .form-card {
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <h2 class="mb-4">{% if post %}Редактирование поста{% else %}Создание нового поста{% endif %}</h2>
+
+    <div class="form-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Заголовок *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <div class="text-danger small">{{ form.title.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Категория *</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                    <div class="text-danger small">{{ form.category.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тип контента *</label>
+                {{ form.content_type }}
+                {% if form.content_type.errors %}
+                    <div class="text-danger small">{{ form.content_type.errors }}</div>
+                {% endif %}
+                <div class="help-text">
+                    <strong>Готовое произведение</strong> — для демонстрации готовой работы<br>
+                    <strong>Процесс</strong> — для показа этапов создания<br>
+                    <strong>Мастер-класс</strong> — для обучающего контента
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Краткое описание</label>
+                {{ form.description }}
+                <div class="help-text">Краткое описание того, о чем этот пост (будет отображаться в ленте)</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Главное изображение</label>
+                {{ form.featured_image }}
+                {% if post.featured_image and post.featured_image.url %}
+                    <div class="current-image">
+                        <small>Текущее изображение:</small><br>
+                        <img src="{{ post.featured_image.url }}" width="100" style="border-radius: 8px; margin-top: 5px;">
+                    </div>
+                {% endif %}
+                <div class="help-text">Необязательно. Рекомендуемый размер: 1200x630px</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Теги (через запятую)</label>
+                {{ form.tags_input }}
+                <div class="help-text">
+                    Пример: портрет, акварель, фэнтези<br>
+                    <strong>Подсказка:</strong> Теги также автоматически добавляются из текста поста через символ # (например, #искусство)
+                </div>
+            </div>
+
+            <!-- Динамические поля для разных типов контента -->
+            <div class="dynamic-fields" id="dynamicFields">
+                <div class="dynamic-fields-title">📝 Дополнительная информация</div>
+
+                <div id="literatureFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Текст произведения</label>
+                        {{ form.text_content }}
+                        <div class="help-text">Вы можете использовать форматирование текста и теги через #</div>
+                    </div>
+                </div>
+
+                <div id="drawingFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Материалы</label>
+                        {{ form.materials }}
+                        <div class="help-text">Например: акварель, холст, масло, карандаш</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Техника</label>
+                        {{ form.technique }}
+                        <div class="help-text">Например: лессировка, импасто, графика</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Размер</label>
+                        {{ form.size }}
+                        <div class="help-text">Например: 30x40 см, A4</div>
+                    </div>
+                </div>
+
+                <div id="processFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Этапы работы</label>
+                        {{ form.stages }}
+                        <div class="help-text">Опишите каждый этап создания с новой строки</div>
+                    </div>
+                </div>
+
+                <div id="tutorialFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Длительность</label>
+                        {{ form.duration }}
+                        <div class="help-text">Например: 2 часа, 3 дня, 1 неделя</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Сложность</label>
+                        {{ form.difficulty }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Пошаговая инструкция</label>
+                        {{ form.stages }}
+                        <div class="help-text">Каждый шаг с новой строки</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-submit">
+                    {% if post %}Сохранить изменения{% else %}Опубликовать{% endif %}
+                </button>
+                {% if post %}
+                    <a href="{% url 'posts:post_detail' post.slug %}" class="btn btn-outline-secondary">Отмена</a>
+                {% else %}
+                    <a href="{% url 'posts:home' %}" class="btn btn-outline-secondary">Отмена</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const contentTypeSelect = document.querySelector('select[name="content_type"]');
+    const literatureFields = document.getElementById('literatureFields');
+    const drawingFields = document.getElementById('drawingFields');
+    const processFields = document.getElementById('processFields');
+    const tutorialFields = document.getElementById('tutorialFields');
+
+    function updateDynamicFields() {
+        literatureFields.style.display = 'none';
+        drawingFields.style.display = 'none';
+        processFields.style.display = 'none';
+        tutorialFields.style.display = 'none';
+
+        if (!contentTypeSelect || !contentTypeSelect.value) return;
+
+        const selectedOption = contentTypeSelect.options[contentTypeSelect.selectedIndex];
+        const typeName = selectedOption ? selectedOption.text.toLowerCase() : '';
+        const typeSlug = selectedOption ? (selectedOption.getAttribute('data-slug') || '') : '';
+
+        if (typeName.includes('готовое') || typeSlug === 'finished') {
+            const categorySelect = document.querySelector('select[name="category"]');
+            const categoryName = categorySelect ? categorySelect.options[categorySelect.selectedIndex]?.text.toLowerCase() : '';
+
+            if (categoryName.includes('литература') || categoryName.includes('текст')) {
+                literatureFields.style.display = 'block';
+            } else {
+                drawingFields.style.display = 'block';
+            }
+        } else if (typeName.includes('процесс') || typeSlug === 'process') {
+            processFields.style.display = 'block';
+        } else if (typeName.includes('мастер') || typeSlug === 'tutorial') {
+            tutorialFields.style.display = 'block';
+        }
+    }
+
+    const categorySelect = document.querySelector('select[name="category"]');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', updateDynamicFields);
+    }
+
+    if (contentTypeSelect) {
+        const options = contentTypeSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            if (opt.text === 'Готовое произведение') opt.setAttribute('data-slug', 'finished');
+            else if (opt.text === 'Процесс') opt.setAttribute('data-slug', 'process');
+            else if (opt.text === 'Мастер-класс') opt.setAttribute('data-slug', 'tutorial');
+        }
+        
+        contentTypeSelect.addEventListener('change', updateDynamicFields);
+        updateDynamicFields();
+    }
+</script>
+{% endblock %}
