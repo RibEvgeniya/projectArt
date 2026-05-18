@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="mb-4">Редактирование профиля</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Внешний вид</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Аватар</label>
+                        {% if user.avatar %}
+                            <div class="mb-2">
+                                <img src="{{ user.avatar.url }}" width="100" height="100" class="rounded-circle" style="object-fit: cover;">
+                            </div>
+                        {% endif %}
+                        <input type="file" name="avatar" class="form-control" accept="image/*">
+                        <div class="form-text">Рекомендуемый размер: 500x500px</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cover" class="form-label">Шапка профиля</label>
+                        {% if user.cover %}
+                            <div class="mb-2">
+                                <img src="{{ user.cover.url }}" width="100%" height="100" style="object-fit: cover; border-radius: 8px;">
+                            </div>
+                        {% endif %}
+                        <input type="file" name="cover" class="form-control" accept="image/*">
+                        <div class="form-text">Рекомендуемый размер: 1200x300px</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">О себе</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Биография</label>
+                        <textarea name="bio" class="form-control" rows="5">{{ user.bio|default:'' }}</textarea>
+                        <div class="form-text">Расскажите о себе, своем творчестве и увлечениях</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Контактная информация</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Город/Местоположение</label>
+                        <input type="text" name="location" class="form-control" value="{{ user.location|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="website" class="form-label">Сайт или портфолио</label>
+                        <input type="url" name="website" class="form-control" value="{{ user.website|default:'' }}">
+                        <div class="form-text">https://example.com</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ user.phone|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                <a href="{% url 'users:profile' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

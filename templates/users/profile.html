@@ -1,0 +1,661 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Профиль - {{ profile_user.username }}{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Шапка профиля */
+    .profile-cover {
+        position: relative;
+        height: 280px;
+        overflow: hidden;
+        border-radius: 20px 20px 0 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .cover-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .cover-placeholder span {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.2rem;
+    }
+
+    .cover-edit-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 10;
+    }
+
+    .cover-edit-btn .btn {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        border: none;
+        color: white;
+        transition: all 0.3s;
+    }
+
+    .cover-edit-btn .btn:hover {
+        background: rgba(0, 0, 0, 0.7);
+        transform: translateY(-2px);
+    }
+
+    /* Аватар */
+    .profile-avatar-wrapper {
+        position: relative;
+        margin-top: -60px;
+        margin-left: 40px;
+        margin-bottom: 20px;
+        z-index: 10;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--card-bg);
+        padding: 4px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: inline-block;
+    }
+
+    .avatar-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: bold;
+        color: white;
+    }
+
+    /* Информационная карточка */
+    .profile-info-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .profile-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .badge-creator {
+        background: #28a745;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-moderator {
+        background: #ffc107;
+        color: #212529;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .profile-bio {
+        margin-bottom: 25px;
+    }
+
+    .profile-bio h5 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+    }
+
+    .profile-bio p {
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    .contact-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .contact-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--bg-secondary);
+        border-radius: 30px;
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    .btn-edit-profile {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .btn-edit-profile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    /* Поиск и фильтры */
+    .profile-search {
+        margin-bottom: 30px;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        margin-top: 15px;
+    }
+
+    .filter-btn {
+        padding: 6px 16px;
+        border-radius: 30px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .filter-btn:hover:not(.active) {
+        background: var(--border-color);
+    }
+
+    /* Стили для постов - картинка красиво вписана */
+    .posts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .post-card-wrapper {
+        position: relative;
+        background: var(--card-bg);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .post-card-wrapper:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-card {
+        text-decoration: none;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .post-text-content {
+        padding: 20px;
+    }
+
+    /* КОНТЕЙНЕР ДЛЯ КАРТИНКИ - С ФИКСИРОВАННОЙ ВЫСОТОЙ ДЛЯ КРАСИВОГО ВМЕЩЕНИЯ */
+    .post-image-container {
+        width: 100%;
+        background: #f5f5f5;
+        text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* КАРТИНКА УМЕНЬШЕНА, НО ВИДНА ПОЛНОСТЬЮ */
+    .post-image-fit {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        max-height: 400px; /* Ограничиваем высоту для красивого вмещения */
+        width: auto;
+        height: auto;
+        object-fit: contain; /* Сохраняем пропорции */
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .post-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .post-description {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .post-stats {
+        display: flex;
+        gap: 20px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .btn-delete-post {
+        background: rgba(220, 53, 69, 0.9);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .btn-delete-post:hover {
+        background: rgba(220, 53, 69, 1);
+        transform: scale(1.05);
+    }
+
+    .empty-posts {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+        .profile-cover {
+            height: 200px;
+        }
+
+        .profile-avatar-wrapper {
+            margin-top: -50px;
+            margin-left: 20px;
+        }
+
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+        }
+
+        .profile-info-card {
+            padding: 15px 20px;
+        }
+
+        .profile-header h2 {
+            font-size: 22px;
+        }
+
+        .profile-stats {
+            gap: 20px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+        }
+
+        .search-form {
+            flex-direction: column;
+        }
+
+        .search-input {
+            width: 100%;
+        }
+
+        .post-title {
+            font-size: 18px;
+        }
+
+        .post-image-fit {
+            max-height: 300px; /* На мобильных устройствах высота меньше */
+        }
+
+        .post-image-container {
+            padding: 15px;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Шапка профиля -->
+    <div class="profile-cover">
+        {% if profile_user.cover and profile_user.cover.url %}
+            <img src="{{ profile_user.cover.url }}" alt="Cover" class="cover-image">
+        {% else %}
+            <div class="cover-placeholder">
+                <span>🎨 Творческое пространство</span>
+            </div>
+        {% endif %}
+
+        {% if is_owner %}
+        <div class="cover-edit-btn">
+            <a href="{% url 'users:profile_edit' %}" class="btn btn-sm">
+                ✏️ Редактировать профиль
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Аватар -->
+    <div class="profile-avatar-wrapper">
+        <div class="profile-avatar">
+            {% if profile_user.avatar and profile_user.avatar.url %}
+                <img src="{{ profile_user.avatar.url }}" alt="{{ profile_user.username }}" class="avatar-image">
+            {% else %}
+                <div class="avatar-placeholder">
+                    {{ profile_user.username|make_list|first|upper }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Информационная карточка -->
+    <div class="profile-info-card">
+        <div class="profile-header">
+            <h2>{{ profile_user.username }}</h2>
+            {% if profile_user.is_creator %}
+                <span class="badge-creator">✨ Творец</span>
+            {% endif %}
+            {% if profile_user.is_moderator %}
+                <span class="badge-moderator">🛡️ Модератор</span>
+            {% endif %}
+        </div>
+
+        <div class="profile-stats">
+            <div class="stat-item">
+                <span class="stat-value">{{ posts.count }}</span>
+                <span class="stat-label">публикаций</span>
+            </div>
+            <div class="stat-item">
+                <a href="{% url 'users:followers' username=profile_user.username %}" style="text-decoration: none; color: inherit;">
+                    <span class="stat-value">{{ profile_user.followers.count }}</span>
+                    <span class="stat-label">подписчиков</span>
+                </a>
+            </div>
+            <div class="stat-item">
+                <a href="{% url 'users:following' username=profile_user.username %}" style="text-decoration: none; color: inherit;">
+                    <span class="stat-value">{{ profile_user.following.count }}</span>
+                    <span class="stat-label">подписок</span>
+                </a>
+            </div>
+        </div>
+
+        {% if profile_user.bio %}
+        <div class="profile-bio">
+            <h5>📖 О себе</h5>
+            <p>{{ profile_user.bio }}</p>
+        </div>
+        {% endif %}
+
+        {% if profile_user.location or profile_user.website or profile_user.phone or profile_user.email %}
+        <div class="contact-grid">
+            {% if profile_user.location %}
+            <div class="contact-item">
+                <span>📍</span> {{ profile_user.location }}
+            </div>
+            {% endif %}
+            {% if profile_user.website %}
+            <div class="contact-item">
+                <span>🌐</span> <a href="{{ profile_user.website }}" target="_blank">{{ profile_user.website|truncatechars:30 }}</a>
+            </div>
+            {% endif %}
+            {% if profile_user.phone %}
+            <div class="contact-item">
+                <span>📞</span> {{ profile_user.phone }}
+            </div>
+            {% endif %}
+            <div class="contact-item">
+                <span>📧</span> {{ profile_user.email }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if is_owner %}
+        <div class="profile-actions" style="display: flex; gap: 15px; margin-top: 20px;">
+            <a href="{% url 'posts:post_create' %}" class="btn btn-edit-profile">
+                ✏️ Создать пост
+            </a>
+            <a href="{% url 'users:profile_edit' %}" class="btn btn-outline-secondary">
+                ⚙️ Редактировать профиль
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div class="profile-search">
+        <form method="get" class="search-form">
+            <input type="text" name="search" class="form-control search-input" placeholder="Поиск по публикациям..." value="{{ query }}">
+            <button type="submit" class="btn btn-primary">Найти</button>
+            {% if query or content_type_filter %}
+                <a href="{% url 'users:profile_detail' username=profile_user.username %}" class="btn btn-outline-secondary">Сбросить</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="filter-buttons">
+        <a href="{% url 'users:profile_detail' username=profile_user.username %}{% if query %}?search={{ query }}{% endif %}"
+           class="filter-btn {% if not content_type_filter %}active{% endif %}">
+            Все
+        </a>
+        {% for ct in content_types %}
+            <a href="?type={{ ct.slug }}{% if query %}&search={{ query }}{% endif %}"
+               class="filter-btn {% if content_type_filter == ct.slug %}active{% endif %}">
+                {{ ct.name }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Сетка постов -->
+    <h4 style="margin-bottom: 20px; color: var(--text-primary);">📂 Публикации</h4>
+
+    {% if posts %}
+        <div class="posts-list">
+            {% for post in posts %}
+                {% if post.slug %}
+                    <div class="post-card-wrapper">
+                        <a href="{% url 'posts:post_detail' slug=post.slug %}" class="post-card">
+                            <div class="post-text-content">
+                                <h3 class="post-title">{{ post.title }}</h3>
+                                <div class="post-meta">
+                                    <span>{{ post.published_at|date:"d.m.Y" }}</span>
+                                    {% if post.category %}
+                                        <span>• {{ post.category.name }}</span>
+                                    {% endif %}
+                                    {% if post.content_type %}
+                                        <span>• {{ post.content_type.name }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if post.description %}
+                                    <div class="post-description">
+                                        {{ post.description|truncatechars:150 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- КАРТИНКА УМЕНЬШЕНА, НО ВИДНА ПОЛНОСТЬЮ -->
+                            {% if post.featured_image and post.featured_image.url %}
+                                <div class="post-image-container">
+                                    <img src="{{ post.featured_image.url }}"
+                                         alt="{{ post.title }}"
+                                         class="post-image-fit"
+                                         loading="lazy">
+                                </div>
+                            {% endif %}
+
+                            <div class="post-text-content">
+                                <div class="post-stats">
+                                    <span>❤️ {{ post.likes }}</span>
+                                    <span>💬 {{ post.comments.count }}</span>
+                                    <span>👁️ {{ post.views }}</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        {% if is_owner %}
+                            <button class="btn-delete-post" onclick="showDeleteModal('{{ post.slug }}', '{{ post.title|escapejs }}')"
+                                    style="position: absolute; top: 15px; right: 15px;">
+                                🗑️
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Модальное окно удаления -->
+        <div class="modal fade" id="deletePostModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Удаление поста</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="deletePostMessage">Вы уверены, что хотите удалить этот пост?</p>
+                        <p class="text-danger">Это действие нельзя отменить.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <form id="deletePostForm" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-posts">
+            <p>📭 Нет публикаций</p>
+            {% if is_owner %}
+                <a href="{% url 'posts:post_create' %}" class="btn btn-primary mt-2">Создать первый пост</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function showDeleteModal(slug, title) {
+        const modal = new bootstrap.Modal(document.getElementById('deletePostModal'));
+        const messageEl = document.getElementById('deletePostMessage');
+        const formEl = document.getElementById('deletePostForm');
+
+        messageEl.textContent = `Вы уверены, что хотите удалить пост "${title}"?`;
+        formEl.action = `/post/${slug}/delete/`;
+        modal.show();
+    }
+</script>
+{% endblock %}
